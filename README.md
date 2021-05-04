@@ -9,3 +9,8 @@ or
 $ make build
 $ ./csview -f sample.csv 
 ```
+
+query sample
+```
+where Country = Japan
+```

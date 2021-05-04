@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/kk-no/csview/csv"
+	"github.com/kk-no/csview/executor"
 	"github.com/kk-no/csview/handler"
 	"github.com/kk-no/csview/template"
 )
@@ -21,8 +22,7 @@ func main() {
 	log.Printf("Load [%s]\n", *f)
 	log.Printf("Header exists flag [%t]", *h)
 
-	rows, err := csv.Load(*f, *h)
-	if err != nil {
+	if _, err := csv.Load(*f, *h); err != nil {
 		log.Fatalf("failed to load file: %s", err)
 	}
 
@@ -31,7 +31,10 @@ func main() {
 		log.Fatalf("failed to parse template: %s", err)
 	}
 
-	http.Handle("/", handler.NewTemplateHandler(t, rows))
+	e := executor.NewCSVExecutor(t)
+
+	http.Handle("/", handler.NewTemplateHandler(e))
+	http.Handle("/query", handler.NewQueryHandler(e))
 
 	log.Printf("listen serve on http://localhost:%s/", port)
 	if err := http.ListenAndServe(":"+port, nil); err != nil {

@@ -5,9 +5,9 @@ import (
 	"html/template"
 )
 
-//go:embed index.tmpl
+//go:embed index.html
 var temp embed.FS
 
 func New() (*template.Template, error) {
-	return template.ParseFS(temp, "index.tmpl")
+	return template.ParseFS(temp, "index.html")
 }

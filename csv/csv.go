@@ -7,6 +7,12 @@ import (
 	"strconv"
 )
 
+// cache loaded csv data
+var LoadedRows *Rows
+
+// template execution target rows
+var ExecutionRows *Rows
+
 func Load(path string, withHeader bool) (*Rows, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -36,8 +42,20 @@ func Load(path string, withHeader bool) (*Rows, error) {
 		}
 	}
 
-	return &Rows{
-		Header: header,
-		Body:   body,
-	}, nil
+	indexes := make(map[string]int, len(header))
+	for i, v := range header {
+		indexes[v] = i
+	}
+
+	rows := &Rows{
+		Count:   len(lines),
+		Indexes: indexes,
+		Header:  header,
+		Body:    body,
+	}
+
+	LoadedRows = rows
+	ExecutionRows = rows
+
+	return rows, nil
 }
