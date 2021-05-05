@@ -1,6 +1,6 @@
 # csview
 
-csview is a CLI tool that allows you to view csv in a browser.
+csview is a CLI tool that allows you to view csv in a browser.  
 This is for studying go:embed.
 
 ## run
@@ -15,3 +15,7 @@ query sample
 ```
 where Country = Japan
 ```
+
+## TODO
+- Support Update
+- Support other search keyword (e.g. "AND", "OR" and "BETWEEN")

@@ -11,13 +11,19 @@
 </style>
 
 <script type="text/javascript">
+    function reset() {
+        window.location.href = "http://localhost:8888";
+    }
     function send() {
         const query = document.getElementById("query").value
-        const req = new XMLHttpRequest();
         const url = "http://localhost:8888/query?query=" + query
-        req.open("GET", url, true);
-        req.send();
-        window.location.href = url;
+        fetch(url, {
+            method: "GET"
+        }).then(response => {
+            if (response.status === 200) {
+                window.location.href = url;
+            }
+        });
     }
 </script>
 
@@ -30,6 +36,7 @@
     <div>
         <textarea id="query" cols="50" rows="5"></textarea>
         <button onclick="send()">Execution</button>
+        <button onclick="reset()">Reset</button>
     </div>
     <div>
         <ul>

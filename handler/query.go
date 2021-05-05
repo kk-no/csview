@@ -3,10 +3,10 @@ package handler
 import (
 	"log"
 	"net/http"
-	"strings"
 
 	"github.com/kk-no/csview/csv"
 	"github.com/kk-no/csview/executor"
+	"github.com/kk-no/csview/query"
 )
 
 type queryHandler struct {
@@ -18,82 +18,44 @@ func NewQueryHandler(executor executor.Executor) http.Handler {
 }
 
 func (h queryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	q := r.URL.Query()
-	if q == nil {
+	qs := r.URL.Query()
+	if qs == nil {
+		log.Print("no query specified\n")
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	sq := strings.Split(q.Get("query"), " ")
-	if len(sq) < 4 {
+	q, err := query.Parse(qs.Get("query"))
+	if err != nil {
+		log.Printf("failed to parse query: %s\n", err)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	targetRow := sq[1]
-	conditionalState := sq[2]
-	conditionalValue := sq[3]
-
-	rowIndex, ok := csv.LoadedRows.Indexes[targetRow]
+	rowIndex, ok := csv.LoadedRows.Indexes[q.Target]
 	if !ok {
+		log.Printf("colum does not exist: %s\n", q.Target)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	comparator := makeComparator(conditionalState, conditionalValue)
+
+	result, err := query.NewExecutor(rowIndex, q).Exec(csv.LoadedRows.Body)
+	if err != nil {
+		log.Printf("execute query error: %s\n", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	execRows := &csv.Rows{
 		Count:   1,
 		Indexes: csv.LoadedRows.Indexes,
 		Header:  csv.LoadedRows.Header,
-		Body:    make([][]string, 0, len(csv.LoadedRows.Body)),
-	}
-
-	for _, row := range csv.LoadedRows.Body {
-		if comparator(row[rowIndex]) {
-			execRows.Body = append(execRows.Body, row)
-		}
+		Body:    result,
 	}
 
 	if err := h.executor.Exec(w, execRows); err != nil {
-		log.Printf("query executor error: %s", err)
+		log.Printf("execute template error: %s\n", err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-}
-
-func makeComparator(state, value string) func(string) bool {
-	switch state {
-	case "=":
-		return func(target string) bool {
-			if target == value {
-				return true
-			}
-			return false
-		}
-	case "<":
-		return func(target string) bool {
-			if target < value {
-				return true
-			}
-			return false
-		}
-	case ">":
-		return func(target string) bool {
-			if target > value {
-				return true
-			}
-			return false
-		}
-	case "<=":
-		return func(target string) bool {
-			if target <= value {
-				return true
-			}
-			return false
-		}
-	case ">=":
-		return func(target string) bool {
-			if target >= value {
-				return true
-			}
-			return false
-		}
-	}
-	return nil
 }
