@@ -8,6 +8,22 @@
     tr:nth-child(even) {
         background-color: #f0f8ff;
     }
+    ul {
+        padding: 0;
+    }
+    button {
+        display: inline-block;
+        padding: 8px;
+        border-radius: 4px;
+        background-color: #b0c4de;
+        font-weight: bold;
+        cursor: pointer;
+        border: 2px solid transparent;
+    }
+    textarea {
+        display: block;
+        box-shadow: 0 0 0 1px #ccc inset;
+    }
 </style>
 
 <script type="text/javascript">
@@ -34,7 +50,7 @@
 
 <body>
     <div>
-        <textarea id="query" cols="50" rows="5"></textarea>
+        <textarea id="query" cols="50" rows="5" class="m-form-textarea"></textarea>
         <button onclick="send()">Execution</button>
         <button onclick="reset()">Reset</button>
     </div>
